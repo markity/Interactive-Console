@@ -211,7 +211,7 @@ func doListen(w *Win) {
 		case *endEvent:
 			w.isStopped = true
 			return
-		case *blockInputChangeEvent:
+		case *setBlockInputChangeEvent:
 			w.blockedNow = event.data
 			w.input = nil
 			w.curwidth = 0
@@ -221,6 +221,21 @@ func doListen(w *Win) {
 			w.coff = 0
 			w.loff = 0
 			reDraw(w, false)
+		case *gotoButtomEvent:
+			if !w.trace {
+				maxloff, _ := getMaxLoffAndOutputN(w.curmaxY, len(w.lines))
+				w.loff = maxloff
+				reDraw(w, false)
+			}
+		case *gotoTopEvent:
+			if !w.trace {
+				w.loff = 0
+				reDraw(w, false)
+			}
+		case *setTraceEvent:
+			w.trace = event.data
+		case *setBlockInputAfterEnterEvent:
+			w.blockInputAfterEnter = event.data
 		}
 	}
 }
@@ -254,14 +269,30 @@ func (w *Win) Stop() {
 
 // 追踪最新输出, 此时不允许上下移动, 但允许左右移动
 func (w *Win) SetTrace(enable bool) {
-	w.trace = enable
+	w.handler.PostEventWait(&setTraceEvent{when: time.Now(), data: enable})
 }
 
 // 是否禁止输入, 当禁止输入时, 用户输入将被清空
-func (w *Win) BlockInput(ifBlock bool) {
-	w.handler.PostEventWait(&blockInputChangeEvent{when: time.Now(), data: ifBlock})
+func (w *Win) SetBlockInput(ifBlock bool) {
+	w.handler.PostEventWait(&setBlockInputChangeEvent{when: time.Now(), data: ifBlock})
 }
 
+// 是否在发送一条命令后禁用输入, 直到手动调用BlockInput(false)才恢复下一条输入
+func (w *Win) SetBlockInputAfterEnter(ifBlock bool) {
+	w.handler.PostEventWait(&setBlockInputAfterEnterEvent{when: time.Now(), data: ifBlock})
+}
+
+// 清空窗体
 func (w *Win) Clear() {
 	w.handler.PostEventWait(&clearEvent{when: time.Now()})
+}
+
+// 移动到最后一行
+func (w *Win) GotoButtom() {
+	w.handler.PostEventWait(&gotoButtomEvent{when: time.Now()})
+}
+
+// 移动到第一行
+func (w *Win) GotoTop() {
+	w.handler.PostEventWait(&gotoTopEvent{when: time.Now()})
 }
