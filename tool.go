@@ -18,14 +18,12 @@ func reDraw(w *Win, resize bool) {
 		curwidth := 0
 		curLine := w.lines[j]
 		curLineSize := len(w.lines[j])
-		offset := 0
 		for beg := w.coff; beg < curLineSize; beg++ {
 			thisChar := curLine[beg]
 			thisCharWidth := runewidth.RuneWidth(rune(thisChar))
 			if w.curmaxX+1-curwidth >= thisCharWidth {
+				s.SetContent(curwidth, i, thisChar, nil, tcell.StyleDefault)
 				curwidth += thisCharWidth
-				s.SetContent(offset, i, thisChar, nil, tcell.StyleDefault)
-				offset += thisCharWidth
 			} else {
 				break
 			}
@@ -48,7 +46,7 @@ func reDraw(w *Win, resize bool) {
 }
 
 func maxwidthfrom(w *Win) int {
-	n := w.coff
+	n := w.coff + 1
 	maxwidth := 0
 	nLines := len(w.lines)
 	for i := 0; i < nLines; i++ {

@@ -53,6 +53,8 @@ type Win struct {
 
 	// 目前是否处于输入阻塞状态
 	blockedNow bool
+
+	waitStopChan chan struct{}
 }
 
 // 运行窗体
@@ -77,6 +79,7 @@ func Run(cfg Config) *Win {
 		isStopped:            false,
 		blockInputAfterEnter: cfg.BlockInputAfterEnter,
 		blockedNow:           cfg.BlockInputAfterRun,
+		waitStopChan:         make(chan struct{}),
 	}
 
 	s.SetStyle(tcell.StyleDefault)
@@ -96,9 +99,6 @@ func (w *Win) GetCmdChan() chan string {
 
 func doListen(w *Win) {
 	s := w.handler
-	defer func() {
-		s.Fini()
-	}()
 	for {
 		ev := s.PollEvent()
 
@@ -210,6 +210,8 @@ func doListen(w *Win) {
 			reDraw(w, true)
 		case *endEvent:
 			w.isStopped = true
+			w.handler.Fini()
+			w.waitStopChan <- struct{}{}
 			return
 		case *setBlockInputChangeEvent:
 			w.blockedNow = event.data
@@ -263,8 +265,10 @@ func (w *Win) SendLine(s string) error {
 // }
 
 // 关闭窗口
-func (w *Win) Stop() {
+func (w *Win) Stop() <-chan struct{} {
 	w.handler.PostEventWait(&endEvent{when: time.Now()})
+	<-w.waitStopChan
+	return w.waitStopChan
 }
 
 // 追踪最新输出, 此时不允许上下移动, 但允许左右移动
