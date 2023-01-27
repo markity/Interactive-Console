@@ -1,4 +1,4 @@
-module interactive
+module github.com/markity/Interactive-Console
 
 go 1.19
 
