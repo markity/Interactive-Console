@@ -26,6 +26,15 @@ go get github.com/markity/Interactive-Console
 ### 快速入门 - 一个简单的交互式程序
 
 ```go
+package main
+
+import (
+	"fmt"
+	"sync"
+
+	interactive "github.com/markity/Interactive-Console"
+)
+
 func cmdHandler(w *interactive.Win, wait *sync.WaitGroup) {
 	for {
 		select {

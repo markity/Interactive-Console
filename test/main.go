@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"interactive"
 	"sync"
+
+	interactive "github.com/markity/Interactive-Console"
 )
 
 func cmdHandler(w *interactive.Win, wait *sync.WaitGroup) {
