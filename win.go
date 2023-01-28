@@ -36,7 +36,7 @@ type Win struct {
 	curwidth int
 
 	// 输入位置的起始位置, 不修改, 不保护
-	intputStart int
+	inputStart int
 
 	// 不保护
 	curmaxY int
@@ -74,7 +74,7 @@ func Run(cfg Config) *Win {
 		loff:                 0,
 		coff:                 0,
 		curwidth:             0,
-		intputStart:          runewidth.RuneWidth(cfg.Prompt) + 1,
+		inputStart:           runewidth.RuneWidth(cfg.Prompt) + 1,
 		curmaxY:              y - 1,
 		curmaxX:              x - 1,
 		cmdC:                 make(chan string),
@@ -89,8 +89,8 @@ func Run(cfg Config) *Win {
 	s.SetStyle(tcell.StyleDefault)
 	s.Clear()
 	s.SetContent(0, w.curmaxY, cfg.Prompt, nil, tcell.StyleDefault)
-	s.SetContent(w.intputStart-1, w.curmaxY, ' ', nil, tcell.StyleDefault)
-	s.ShowCursor(w.intputStart, w.curmaxY)
+	s.SetContent(w.promptWidth, w.curmaxY, ' ', nil, tcell.StyleDefault)
+	s.ShowCursor(w.inputStart, w.curmaxY)
 	s.Show()
 	go doListen(w)
 	return w
@@ -122,10 +122,10 @@ func doListen(w *Win) {
 				}
 
 				// 清空最后一行
-				for i, j := 0, w.intputStart; i < w.curwidth; i, j = i+1, j+1 {
+				for i, j := 0, w.inputStart; i < w.curwidth; i, j = i+1, j+1 {
 					s.SetContent(j, w.curmaxY, ' ', nil, tcell.StyleDefault)
 				}
-				s.ShowCursor(w.intputStart, w.curmaxY)
+				s.ShowCursor(w.inputStart, w.curmaxY)
 				s.Show()
 				stringCmd := string(w.input)
 				go func() {
@@ -148,7 +148,7 @@ func doListen(w *Win) {
 				}
 
 				// 清空最后一行
-				for i, j := 0, w.intputStart; i < w.curwidth; i, j = i+1, j+1 {
+				for i, j := 0, w.inputStart; i < w.curwidth; i, j = i+1, j+1 {
 					s.SetContent(j, w.curmaxY, ' ', nil, tcell.StyleDefault)
 				}
 
@@ -157,7 +157,7 @@ func doListen(w *Win) {
 				w.input = w.input[0 : len(w.input)-1]
 
 				// 现在写已有的消息
-				offset := w.intputStart
+				offset := w.inputStart
 				for i := 0; i < len(w.input); i++ {
 					s.SetContent(offset, w.curmaxY, w.input[i], nil, tcell.StyleDefault)
 					offset += runewidth.RuneWidth(w.input[i])
@@ -239,10 +239,10 @@ func doListen(w *Win) {
 			}
 			c := event.Rune()
 			cWidth := runewidth.RuneWidth(c)
-			if w.curmaxX+1-w.intputStart-w.curwidth > cWidth {
-				s.SetContent(w.curwidth+w.intputStart, w.curmaxY, c, nil, tcell.StyleDefault)
+			if w.curmaxX+1-w.inputStart-w.curwidth > cWidth {
+				s.SetContent(w.curwidth+w.inputStart, w.curmaxY, c, nil, tcell.StyleDefault)
 				w.curwidth += cWidth
-				s.ShowCursor(w.curwidth+w.intputStart, w.curmaxY)
+				s.ShowCursor(w.curwidth+w.inputStart, w.curmaxY)
 				s.Show()
 				w.input = append(w.input, c)
 			} else {
@@ -317,23 +317,82 @@ func doListen(w *Win) {
 			}
 			w.loff--
 			reDraw(w, false)
+		case *sendFrontEvent:
+			newLines := make([]([]rune), len(w.lines)+1, (len(w.lines)+1)*2)
+			newLines[0] = event.data
+			for i := 1; i <= len(w.lines); i++ {
+				newLines[i] = w.lines[i-1]
+			}
+			w.lines = newLines
+
+			if w.trace {
+				continue
+			}
+
+			maxloff, _ := getMaxLoffAndOutputN(w.curmaxY, len(w.lines))
+			if w.loff == maxloff {
+				continue
+			}
+
+			w.loff++
+			reDraw(w, false)
+		case *popBackLineEvent:
+			if len(w.lines) == 0 {
+				continue
+			}
+			w.lines = w.lines[:len(w.lines)-1]
+			maxloff, _ := getMaxLoffAndOutputN(w.curmaxY, len(w.lines))
+			if w.loff > maxloff {
+				w.loff = maxloff
+			}
+			reDraw(w, false)
+		case *popFrontLineEvent:
+			if len(w.lines) == 0 {
+				continue
+			}
+			w.lines = w.lines[1:]
+			if w.trace {
+				continue
+			}
+			if w.loff >= 1 {
+				w.loff--
+			}
+			reDraw(w, false)
 		}
 	}
 }
 
 // 当向已经关闭的Win发送信息时返回error, 一个良好设计的程序不用检查这个error
-func (w *Win) SendLine(s string) error {
+func (w *Win) SendLineBack(s string) error {
 	if w.isStopped {
 		return errors.New("send to a closed window")
 	}
 	data := make([]rune, 0, utf8.RuneCountInString(s))
 	for _, v := range s {
-		data = append(data, v)
 		if v == '\n' {
 			break
 		}
+		data = append(data, v)
 	}
 	w.handler.PostEventWait(&sendEvent{when: time.Now(), data: data})
+
+	return nil
+}
+
+func (w *Win) SendLineFront(s string) error {
+	if w.isStopped {
+		return errors.New("send to a closed window")
+	}
+
+	data := make([]rune, 0, utf8.RuneCountInString(s))
+	for _, v := range s {
+		if v == '\n' {
+			break
+		}
+		data = append(data, v)
+	}
+
+	w.handler.PostEventWait(&sendFrontEvent{when: time.Now(), data: data})
 
 	return nil
 }
@@ -370,12 +429,12 @@ func (w *Win) Clear() {
 	w.handler.PostEventWait(&clearEvent{when: time.Now()})
 }
 
-// 移动到最后一行
+// 移动到最后一行, 将取消trace状态
 func (w *Win) GotoButtom() {
 	w.handler.PostEventWait(&gotoButtomEvent{when: time.Now()})
 }
 
-// 移动到第一行
+// 移动到第一行, 将取消trace状态, 等价于GotoLine(1)
 func (w *Win) GotoTop() {
 	w.handler.PostEventWait(&gotoTopEvent{when: time.Now()})
 }
@@ -385,15 +444,27 @@ func (w *Win) GotoLeft() {
 	w.handler.PostEventWait(&gotoLeftEvent{when: time.Now()})
 }
 
-// 前往第n行
+// 前往第n行, 将取消trace状态
 func (w *Win) GotoLine(n int) {
 	w.handler.PostEventWait(&gotoLineEvent{when: time.Now(), data: n})
 }
 
+// 前往下一行, 将取消trace状态
 func (w *Win) GotoNextLine() {
 	w.handler.PostEventWait(&gotoNextLineEvent{when: time.Now()})
 }
 
+// 前往上一行, 将取消trace状态
 func (w *Win) GotoPreviousLine() {
 	w.handler.PostEventWait(&gotoPreviousLineEvent{when: time.Now()})
+}
+
+// 删除第一行, 如果没有这一行则什么也不做
+func (w *Win) PopFrontLine() {
+	w.handler.PostEventWait(&popFrontLineEvent{when: time.Now()})
+}
+
+// 删除最后一行, 如果没有这一行则什么也不做
+func (w *Win) PopBackLine() {
+	w.handler.PostEventWait(&popBackLineEvent{when: time.Now()})
 }

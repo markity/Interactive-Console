@@ -126,6 +126,8 @@ log:
 	实现接口 Win.GotoLeft
 	实现接口 GotoLine, GotoNextLine, GotoPreviousLine
 	实现接口 Win.GetEventChan
+	实现接口 Win.SendLineFront, Win.PopFrontLine, Win.PopBackLine
+	更名接口 Win.SendLine -> Win.SendLineBack
 	新增特性 可以通过Win.GetEventChan收到注册过的事件
 	新增事件 上移事件EventMoveUp 下移事件EventMoveDown
 	新增事件 已经处在最顶端但尝试上移的事件EventTryToGetUpper 已经处在最底端但尝试下移的事件EventTryToGetLower

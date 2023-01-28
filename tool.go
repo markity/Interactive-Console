@@ -31,8 +31,8 @@ func reDraw(w *Win, resize bool) {
 	}
 
 	s.SetContent(0, w.curmaxY, w.prompt, nil, tcell.StyleDefault)
-	s.SetContent(w.intputStart-1, w.curmaxY, ' ', nil, tcell.StyleDefault)
-	offset := w.intputStart
+	s.SetContent(w.promptWidth, w.curmaxY, ' ', nil, tcell.StyleDefault)
+	offset := w.inputStart
 	if resize {
 		w.input = nil
 		w.curwidth = 0

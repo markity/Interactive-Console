@@ -37,10 +37,12 @@ type EventTryToGetLower struct {
 	When time.Time
 }
 
+// 在trace状态时按上键
 type EventTypeUpWhenTrace struct {
 	When time.Time
 }
 
+// 在trace状态时按下键
 type EventTypeDownWhenTrace struct {
 	When time.Time
 }
@@ -52,6 +54,15 @@ type sendEvent struct {
 }
 
 func (me *sendEvent) When() time.Time {
+	return me.when
+}
+
+type sendFrontEvent struct {
+	when time.Time
+	data []rune
+}
+
+func (me *sendFrontEvent) When() time.Time {
 	return me.when
 }
 
@@ -144,6 +155,22 @@ type gotoPreviousLineEvent struct {
 }
 
 func (me *gotoPreviousLineEvent) When() time.Time {
+	return me.when
+}
+
+type popFrontLineEvent struct {
+	when time.Time
+}
+
+func (me *popFrontLineEvent) When() time.Time {
+	return me.when
+}
+
+type popBackLineEvent struct {
+	when time.Time
+}
+
+func (me *popBackLineEvent) When() time.Time {
 	return me.when
 }
 
