@@ -271,16 +271,14 @@ func doListen(w *Win) {
 			w.loff = 0
 			reDraw(w, false)
 		case *gotoButtomEvent:
-			if !w.trace {
-				maxloff, _ := getMaxLoffAndOutputN(w.curmaxY, len(w.lines))
-				w.loff = maxloff
-				reDraw(w, false)
-			}
+			w.trace = false
+			maxloff, _ := getMaxLoffAndOutputN(w.curmaxY, len(w.lines))
+			w.loff = maxloff
+			reDraw(w, false)
 		case *gotoTopEvent:
-			if !w.trace {
-				w.loff = 0
-				reDraw(w, false)
-			}
+			w.trace = false
+			w.loff = 0
+			reDraw(w, false)
 		case *gotoLeftEvent:
 			if w.coff != 0 {
 				w.coff = 0
@@ -290,6 +288,35 @@ func doListen(w *Win) {
 			w.trace = event.data
 		case *setBlockInputAfterEnterEvent:
 			w.blockInputAfterEnter = event.data
+		case *gotoLineEvent:
+			w.trace = false
+			if event.data-1 == w.loff {
+				continue
+			}
+			maxloff, _ := getMaxLoffAndOutputN(w.curmaxY, len(w.lines))
+			if event.data <= 0 {
+				w.loff = 0
+			} else if event.data >= maxloff+1 {
+				w.loff = maxloff
+			} else {
+				w.loff = event.data - 1
+			}
+			reDraw(w, false)
+		case *gotoNextLineEvent:
+			w.trace = false
+			maxloff, _ := getMaxLoffAndOutputN(w.curmaxY, len(w.lines))
+			if w.loff == maxloff {
+				continue
+			}
+			w.loff++
+			reDraw(w, false)
+		case *gotoPreviousLineEvent:
+			w.trace = false
+			if w.loff == 0 {
+				continue
+			}
+			w.loff--
+			reDraw(w, false)
 		}
 	}
 }
@@ -356,4 +383,17 @@ func (w *Win) GotoTop() {
 // 移动到最左
 func (w *Win) GotoLeft() {
 	w.handler.PostEventWait(&gotoLeftEvent{when: time.Now()})
+}
+
+// 前往第n行
+func (w *Win) GotoLine(n int) {
+	w.handler.PostEventWait(&gotoLineEvent{when: time.Now(), data: n})
+}
+
+func (w *Win) GotoNextLine() {
+	w.handler.PostEventWait(&gotoNextLineEvent{when: time.Now()})
+}
+
+func (w *Win) GotoPreviousLine() {
+	w.handler.PostEventWait(&gotoPreviousLineEvent{when: time.Now()})
 }

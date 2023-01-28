@@ -122,6 +122,31 @@ func (me *gotoLeftEvent) When() time.Time {
 	return me.when
 }
 
+type gotoLineEvent struct {
+	when time.Time
+	data int
+}
+
+func (me *gotoLineEvent) When() time.Time {
+	return me.when
+}
+
+type gotoNextLineEvent struct {
+	when time.Time
+}
+
+func (me *gotoNextLineEvent) When() time.Time {
+	return me.when
+}
+
+type gotoPreviousLineEvent struct {
+	when time.Time
+}
+
+func (me *gotoPreviousLineEvent) When() time.Time {
+	return me.when
+}
+
 // type gotoRightEvent struct {
 // 	when time.Time
 // }
