@@ -52,7 +52,12 @@ func cmdHandler(w *interactive.Win, wait *sync.WaitGroup) {
 			case "ping":
 				// 发送一行信息, 注意不能包含\n字符, 否则只保留\n前面的字符而丢弃后面的
 				// 如果要发送多行, 多次调用SendLine, 这是异步安全的, 总是保证先发送的显示在前
-				w.SendLine("pong")
+				attr1 := interactive.GetDefaultSytleAttr()
+				attr1.Foreground = interactive.ColorPurple
+				attr1.Bold = true
+				attr2 := attr1
+				attr2.Italic = true
+				w.SendLineBackWithColor(attr1, "pong", attr2, "!")
 				w.SetBlockInput(false)
 			case "top":
 				// GotoTop, GotoButtom, GotoLine, GotoNextLine, GotoPreviousLine前往指定行, 如果当前正在trace, 将解除trace
@@ -73,10 +78,14 @@ func cmdHandler(w *interactive.Win, wait *sync.WaitGroup) {
 			case "clear":
 				// Clear清除屏幕
 				w.Clear()
-				w.SendLine("你已经清空了屏幕")
+				attr := interactive.GetDefaultSytleAttr()
+				attr.Foreground = interactive.ColorPink
+				w.SendLineBackWithColor(attr, "你已经清空的屏幕")
 				w.SetBlockInput(false)
 			default:
-				w.SendLine(fmt.Sprintf("unknown command %s", cmd))
+				attr := interactive.GetDefaultSytleAttr()
+				attr.Foreground = interactive.ColorRed
+				w.SendLineBackWithColor(attr, fmt.Sprintf("unknown command %s", cmd))
 				w.SetBlockInput(false)
 			}
 		case ev := <-w.GetEventChan():
@@ -84,16 +93,16 @@ func cmdHandler(w *interactive.Win, wait *sync.WaitGroup) {
 			switch ev.(type) {
 			// 如果当时已经在最后一行了, 用户仍然按下向下键, 那么产生这个事件
 			case *interactive.EventTryToGetLower:
-				w.SendLine("没有更多向下的消息了")
+				w.SendLineBack("没有更多向下的消息了")
 				w.SetTrace(true)
 			// 如果当时已经在第一行了, 用户仍然按下向上键, 那么产生这个事件
 			case *interactive.EventTryToGetUpper:
-				w.SendLine("没有更多向上的消息了")
+				w.SendLineBack("没有更多向上的消息了")
 			// 如果当时处在trace状态, 用户却尝试按上下键
 			case *interactive.EventTypeUpWhenTrace:
 				w.SetTrace(false)
 			case *interactive.EventTypeDownWhenTrace:
-				w.SendLine("现在已经处于追踪模式了")
+				w.SendLineBack("现在已经处于追踪模式了")
 			}
 		}
 	}
@@ -131,6 +140,8 @@ log:
 	新增特性 可以通过Win.GetEventChan收到注册过的事件
 	新增事件 上移事件EventMoveUp 下移事件EventMoveDown
 	新增事件 已经处在最顶端但尝试上移的事件EventTryToGetUpper 已经处在最底端但尝试下移的事件EventTryToGetLower
+	新增特性 现在可以使用颜色了
+	新增接口 SendLineBackWithColor, SendLineFrontWithColor
 ```
 
 ```

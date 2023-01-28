@@ -3,7 +3,6 @@ package interactive
 import (
 	"errors"
 	"time"
-	"unicode/utf8"
 
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
@@ -14,7 +13,9 @@ type Win struct {
 	handler tcell.Screen
 
 	// 每行的数据, 被锁保护
-	lines []([]rune)
+	// lines []([]rune)
+
+	lines []([]interface{})
 
 	// 输入行的数据, 不被锁保护
 	input []rune
@@ -89,7 +90,6 @@ func Run(cfg Config) *Win {
 	s.SetStyle(tcell.StyleDefault)
 	s.Clear()
 	s.SetContent(0, w.curmaxY, cfg.Prompt, nil, tcell.StyleDefault)
-	s.SetContent(w.promptWidth, w.curmaxY, ' ', nil, tcell.StyleDefault)
 	s.ShowCursor(w.inputStart, w.curmaxY)
 	s.Show()
 	go doListen(w)
@@ -248,14 +248,11 @@ func doListen(w *Win) {
 			} else {
 				s.Beep()
 			}
-		case *sendEvent:
-			w.lines = append(w.lines, event.data)
-			reDraw(w, false)
 		case *tcell.EventResize:
 			x, y := s.Size()
 			w.curmaxX, w.curmaxY = x-1, y-1
 			reDraw(w, true)
-		case *endEvent:
+		case *stopEvent:
 			w.isStopped = true
 			w.handler.Fini()
 			w.waitStopChan <- struct{}{}
@@ -317,8 +314,8 @@ func doListen(w *Win) {
 			}
 			w.loff--
 			reDraw(w, false)
-		case *sendFrontEvent:
-			newLines := make([]([]rune), len(w.lines)+1, (len(w.lines)+1)*2)
+		case *sendLineFrontWithColorEvent:
+			newLines := make([]([]interface{}), len(w.lines)+1, (len(w.lines)+1)*2)
 			newLines[0] = event.data
 			for i := 1; i <= len(w.lines); i++ {
 				newLines[i] = w.lines[i-1]
@@ -334,7 +331,11 @@ func doListen(w *Win) {
 				continue
 			}
 
+			// TODO 是否合适?
 			w.loff++
+			reDraw(w, false)
+		case *sendLineBackWithColorEvent:
+			w.lines = append(w.lines, event.data)
 			reDraw(w, false)
 		case *popBackLineEvent:
 			if len(w.lines) == 0 {
@@ -364,47 +365,77 @@ func doListen(w *Win) {
 
 // 当向已经关闭的Win发送信息时返回error, 一个良好设计的程序不用检查这个error
 func (w *Win) SendLineBack(s string) error {
-	if w.isStopped {
-		return errors.New("send to a closed window")
-	}
-	data := make([]rune, 0, utf8.RuneCountInString(s))
-	for _, v := range s {
-		if v == '\n' {
-			break
-		}
-		data = append(data, v)
-	}
-	w.handler.PostEventWait(&sendEvent{when: time.Now(), data: data})
-
-	return nil
+	return w.SendLineBackWithColor(GetDefaultSytleAttr(), s)
 }
 
 func (w *Win) SendLineFront(s string) error {
+	return w.SendLineFrontWithColor(GetDefaultSytleAttr(), s)
+}
+
+// TODO 支持带有颜色的输出
+func (w *Win) SendLineBackWithColor(s ...interface{}) error {
 	if w.isStopped {
 		return errors.New("send to a closed window")
 	}
 
-	data := make([]rune, 0, utf8.RuneCountInString(s))
-	for _, v := range s {
-		if v == '\n' {
-			break
+	for k, v := range s {
+		attr, ok1 := v.(StyleAttr)
+		_, ok2 := v.(string)
+		// 简单的检查, 参数是否规范
+		if !ok1 && !ok2 {
+			return errors.New("invalid arguments")
 		}
-		data = append(data, v)
+		if ok1 {
+			style := tcell.Style(0)
+			style = style.Background(tcell.Color(attr.Background))
+			style = style.Foreground(tcell.Color(attr.Foreground))
+			style = style.Blink(attr.Blink)
+			style = style.Bold(attr.Bold)
+			style = style.Dim(attr.Dim)
+			style = style.Italic(attr.Italic)
+			style = style.Reverse(attr.Reverse)
+			style = style.Underline(attr.Underline)
+			s[k] = style
+		}
 	}
 
-	w.handler.PostEventWait(&sendFrontEvent{when: time.Now(), data: data})
-
+	w.handler.PostEventWait(&sendLineBackWithColorEvent{when: time.Now(), data: s})
 	return nil
 }
 
-// TODO 支持带有颜色的输出
-// func (w *Win) SendLineWithColor(...interface{}) error {
-// 	return nil
-// }
+func (w *Win) SendLineFrontWithColor(s ...interface{}) error {
+	if w.isStopped {
+		return errors.New("send to a closed window")
+	}
+
+	for k, v := range s {
+		attr, ok1 := v.(StyleAttr)
+		_, ok2 := v.(string)
+		// 简单的检查, 参数是否规范
+		if !ok1 && !ok2 {
+			return errors.New("invalid arguments")
+		}
+		if ok1 {
+			style := tcell.Style(0)
+			style = style.Background(tcell.Color(attr.Background))
+			style = style.Foreground(tcell.Color(attr.Foreground))
+			style = style.Blink(attr.Blink)
+			style = style.Bold(attr.Bold)
+			style = style.Dim(attr.Dim)
+			style = style.Italic(attr.Italic)
+			style = style.Reverse(attr.Reverse)
+			style = style.Underline(attr.Underline)
+			s[k] = style
+		}
+	}
+
+	w.handler.PostEventWait(&sendLineFrontWithColorEvent{when: time.Now(), data: s})
+	return nil
+}
 
 // 关闭窗口
 func (w *Win) Stop() <-chan struct{} {
-	w.handler.PostEventWait(&endEvent{when: time.Now()})
+	w.handler.PostEventWait(&stopEvent{when: time.Now()})
 	<-w.waitStopChan
 	return w.waitStopChan
 }

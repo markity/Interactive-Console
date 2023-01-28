@@ -48,29 +48,12 @@ type EventTypeDownWhenTrace struct {
 }
 
 // 内部事件
-type sendEvent struct {
-	when time.Time
-	data []rune
-}
 
-func (me *sendEvent) When() time.Time {
-	return me.when
-}
-
-type sendFrontEvent struct {
-	when time.Time
-	data []rune
-}
-
-func (me *sendFrontEvent) When() time.Time {
-	return me.when
-}
-
-type endEvent struct {
+type stopEvent struct {
 	when time.Time
 }
 
-func (ev *endEvent) When() time.Time {
+func (ev *stopEvent) When() time.Time {
 	return ev.when
 }
 
@@ -171,6 +154,24 @@ type popBackLineEvent struct {
 }
 
 func (me *popBackLineEvent) When() time.Time {
+	return me.when
+}
+
+type sendLineBackWithColorEvent struct {
+	when time.Time
+	data []interface{}
+}
+
+func (me *sendLineBackWithColorEvent) When() time.Time {
+	return me.when
+}
+
+type sendLineFrontWithColorEvent struct {
+	when time.Time
+	data []interface{}
+}
+
+func (me *sendLineFrontWithColorEvent) When() time.Time {
 	return me.when
 }
 

@@ -17,32 +17,46 @@ func reDraw(w *Win, resize bool) {
 	for i, j := 0, w.loff; i < outputLinesN; i, j = i+1, j+1 {
 		curwidth := 0
 		curLine := w.lines[j]
-		curLineSize := len(w.lines[j])
-		for beg := w.coff; beg < curLineSize; beg++ {
-			thisChar := curLine[beg]
-			thisCharWidth := runewidth.RuneWidth(rune(thisChar))
-			if w.curmaxX+1-curwidth >= thisCharWidth {
-				s.SetContent(curwidth, i, thisChar, nil, tcell.StyleDefault)
-				curwidth += thisCharWidth
+		style := tcell.StyleDefault
+
+		offset := 0
+		for _, v := range curLine {
+			str, ok := v.(string)
+			if ok {
+				for _, char := range str {
+					if offset >= w.coff {
+						charWidth := runewidth.RuneWidth(rune(char))
+						if w.curmaxX+1-curwidth >= charWidth {
+							s.SetContent(curwidth, i, char, nil, style)
+							curwidth += charWidth
+						} else {
+							goto out
+						}
+					}
+					offset++
+				}
 			} else {
-				break
+				style = v.(tcell.Style)
 			}
 		}
+	out:
 	}
 
 	s.SetContent(0, w.curmaxY, w.prompt, nil, tcell.StyleDefault)
 	s.SetContent(w.promptWidth, w.curmaxY, ' ', nil, tcell.StyleDefault)
-	offset := w.inputStart
+	ioffset := w.inputStart
 	if resize {
 		w.input = nil
 		w.curwidth = 0
 	}
 	for i := 0; i < len(w.input); i++ {
-		s.SetContent(offset, w.curmaxY, w.input[i], nil, tcell.StyleDefault)
-		offset += runewidth.RuneWidth(w.input[i])
+		s.SetContent(ioffset, w.curmaxY, w.input[i], nil, tcell.StyleDefault)
+		ioffset += runewidth.RuneWidth(w.input[i])
 	}
-	s.ShowCursor(offset, w.curmaxY)
+	s.ShowCursor(ioffset, w.curmaxY)
+
 	s.Show()
+
 }
 
 func maxwidthfrom(w *Win) int {
@@ -52,8 +66,18 @@ func maxwidthfrom(w *Win) int {
 	for i := 0; i < nLines; i++ {
 		thisLine := w.lines[i]
 		thisWidth := 0
-		for beg := n; beg < len(thisLine); beg++ {
-			thisWidth += runewidth.RuneWidth(rune(thisLine[beg]))
+
+		offset := 0
+		for _, v := range thisLine {
+			str, ok := v.(string)
+			if ok {
+				for _, char := range str {
+					if offset >= n {
+						thisWidth += runewidth.RuneWidth(char)
+						offset++
+					}
+				}
+			}
 		}
 		if maxwidth < thisWidth {
 			maxwidth = thisWidth

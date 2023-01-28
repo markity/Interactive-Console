@@ -25,7 +25,12 @@ func cmdHandler(w *interactive.Win, wait *sync.WaitGroup) {
 			case "ping":
 				// 发送一行信息, 注意不能包含\n字符, 否则只保留\n前面的字符而丢弃后面的
 				// 如果要发送多行, 多次调用SendLine, 这是异步安全的, 总是保证先发送的显示在前
-				w.SendLineBack("pong")
+				attr1 := interactive.GetDefaultSytleAttr()
+				attr1.Foreground = interactive.ColorPurple
+				attr1.Bold = true
+				attr2 := attr1
+				attr2.Italic = true
+				w.SendLineBackWithColor(attr1, "pong", attr2, "!")
 				w.SetBlockInput(false)
 			case "top":
 				// GotoTop, GotoButtom, GotoLine, GotoNextLine, GotoPreviousLine前往指定行, 如果当前正在trace, 将解除trace
@@ -46,10 +51,14 @@ func cmdHandler(w *interactive.Win, wait *sync.WaitGroup) {
 			case "clear":
 				// Clear清除屏幕
 				w.Clear()
-				w.SendLineBack("你已经清空了屏幕")
+				attr := interactive.GetDefaultSytleAttr()
+				attr.Foreground = interactive.ColorPink
+				w.SendLineBackWithColor(attr, "你已经清空的屏幕")
 				w.SetBlockInput(false)
 			default:
-				w.SendLineBack(fmt.Sprintf("unknown command %s", cmd))
+				attr := interactive.GetDefaultSytleAttr()
+				attr.Foreground = interactive.ColorRed
+				w.SendLineBackWithColor(attr, fmt.Sprintf("unknown command %s", cmd))
 				w.SetBlockInput(false)
 			}
 		case ev := <-w.GetEventChan():
