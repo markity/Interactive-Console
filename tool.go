@@ -59,14 +59,11 @@ func reDraw(w *Win, resize bool) {
 
 }
 
-func maxwidthfrom(w *Win) int {
-	n := w.coff + 1
+func maxwidthfrom(w []([]interface{}), n int) int {
 	maxwidth := 0
-	nLines := len(w.lines)
-	for i := 0; i < nLines; i++ {
-		thisLine := w.lines[i]
-		thisWidth := 0
 
+	for _, thisLine := range w {
+		thisWidth := 0
 		offset := 0
 		for _, v := range thisLine {
 			str, ok := v.(string)
@@ -74,8 +71,8 @@ func maxwidthfrom(w *Win) int {
 				for _, char := range str {
 					if offset >= n {
 						thisWidth += runewidth.RuneWidth(char)
-						offset++
 					}
+					offset++
 				}
 			}
 		}
@@ -83,6 +80,7 @@ func maxwidthfrom(w *Win) int {
 			maxwidth = thisWidth
 		}
 	}
+
 	return maxwidth
 }
 

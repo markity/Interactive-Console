@@ -216,7 +216,7 @@ func doListen(w *Win) {
 				w.loff += 1
 				reDraw(w, false)
 			case tcell.KeyRight:
-				if w.curmaxX+1 > maxwidthfrom(w) {
+				if w.curmaxX+1 > maxwidthfrom(w.lines, w.coff+1) {
 					continue
 				}
 				w.coff++
