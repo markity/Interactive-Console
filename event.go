@@ -4,6 +4,48 @@ import (
 	"time"
 )
 
+// 导出事件
+
+const EventMaskMoveUp = 1
+const EventMaskMoveDown = 2
+const EventMaskTryToGetUpper = 4
+const EventMaskTryToGetLower = 8
+const EventMaskTypeUpWhenTrace = 16
+const EventMaskTypeDownWhenTrace = 16
+
+// 上移事件
+type EventMoveUp struct {
+	When                 time.Time
+	LineOffsetBeforeMove int
+}
+
+// 下移事件
+type EventMoveDown struct {
+	When                 time.Time
+	LineOffsetBeforeMove int
+}
+
+// 如果已经在最顶端, 还按上键, 那么产生这个事件
+// 可以用来做聊天软件的查看历史消息功能
+type EventTryToGetUpper struct {
+	When time.Time
+}
+
+// 如果已经在最底端, 还按下键, 那么产生这个事件
+// 可以指示程序输出更多
+type EventTryToGetLower struct {
+	When time.Time
+}
+
+type EventTypeUpWhenTrace struct {
+	When time.Time
+}
+
+type EventTypeDownWhenTrace struct {
+	When time.Time
+}
+
+// 内部事件
 type sendEvent struct {
 	when time.Time
 	data []rune
@@ -72,14 +114,13 @@ func (me *setBlockInputChangeEvent) When() time.Time {
 	return me.when
 }
 
-// TODO 是否支持左右移动?
-// type gotoLeftEvent struct {
-// 	when time.Time
-// }
+type gotoLeftEvent struct {
+	when time.Time
+}
 
-// func (me *gotoLeftEvent) When() time.Time {
-// 	return me.when
-// }
+func (me *gotoLeftEvent) When() time.Time {
+	return me.when
+}
 
 // type gotoRightEvent struct {
 // 	when time.Time

@@ -54,6 +54,9 @@ func cmdHandler(w *interactive.Win, wait *sync.WaitGroup) {
 			case "btm":
 				w.GotoButtom()
 				w.SetBlockInput(false)
+			case "left":
+				w.GotoLeft()
+				w.SetBlockInput(false)
 			case "exit":
 				w.Stop()
 				goto out
@@ -64,6 +67,17 @@ func cmdHandler(w *interactive.Win, wait *sync.WaitGroup) {
 			default:
 				w.SendLine(fmt.Sprintf("unknown command %s", cmd))
 				w.SetBlockInput(false)
+			}
+		case ev := <-w.GetEventChan():
+			switch ev.(type) {
+			case *interactive.EventTryToGetLower:
+				w.SendLine("没有更多向下的消息了")
+			case *interactive.EventTryToGetUpper:
+				w.SendLine("没有更多向上的消息了")
+			case *interactive.EventTypeUpWhenTrace:
+				w.SetTrace(false)
+			case *interactive.EventTypeDownWhenTrace:
+				w.SendLine("现在已经处于追踪模式了")
 			}
 		}
 	}
@@ -76,6 +90,7 @@ func main() {
 	cfg := interactive.GetDefaultConfig()
 	cfg.BlockInputAfterEnter = true
 	cfg.TraceAfterRun = true
+	cfg.SpecialEventHandleMask = interactive.EventMaskTryToGetUpper | interactive.EventMaskTryToGetLower | interactive.EventMaskTypeUpWhenTrace | interactive.EventMaskTypeDownWhenTrace
 	win := interactive.Run(cfg)
 	wait := sync.WaitGroup{}
 	wait.Add(1)
@@ -86,9 +101,21 @@ func main() {
 
 ---
 
-UPDATE LOG 2023.1.27
+UPDATE LOG
 
 ```
+date: 2023.1.28
+version: unstable
+log:
+	实现接口 Win.GotoLeft
+	实现接口 Win.GetEventChan
+	新增特性 可以通过Win.GetEventChan收到注册过的事件
+	新增事件 上移事件EventMoveUp 下移事件EventMoveDown
+	新增事件 已经处在最顶端但尝试上移的事件EventTryToGetUpper 已经处在最底端但尝试下移的事件EventTryToGetLower
+```
+
+```
+date: 2023.1.27
 version: unstable
 log:
 	实现接口 Win.Run, Win.Stop

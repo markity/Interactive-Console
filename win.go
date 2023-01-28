@@ -43,7 +43,9 @@ type Win struct {
 	curmaxX int
 
 	// 传递命令
-	cmdC chan string
+	cmdC          chan string
+	specialEventC chan interface{}
+	eventMask     int64
 
 	// TODO 是否需要保护?
 	isStopped bool
@@ -80,6 +82,8 @@ func Run(cfg Config) *Win {
 		blockInputAfterEnter: cfg.BlockInputAfterEnter,
 		blockedNow:           cfg.BlockInputAfterRun,
 		waitStopChan:         make(chan struct{}),
+		specialEventC:        make(chan interface{}),
+		eventMask:            cfg.SpecialEventHandleMask,
 	}
 
 	s.SetStyle(tcell.StyleDefault)
@@ -95,6 +99,11 @@ func Run(cfg Config) *Win {
 // 会将用户输入的信息发送到这个channel, 永远不应该关闭这个channel
 func (w *Win) GetCmdChan() chan string {
 	return w.cmdC
+}
+
+// 会将特殊事件的信息发送到这个channel, 永远不应该关闭这个channel
+func (w *Win) GetEventChan() chan interface{} {
+	return w.specialEventC
 }
 
 func doListen(w *Win) {
@@ -156,15 +165,53 @@ func doListen(w *Win) {
 				s.ShowCursor(offset, w.curmaxY)
 				s.Show()
 			case tcell.KeyUp:
-				if w.loff == 0 {
+				if w.trace {
+					if w.eventMask&EventMaskTypeUpWhenTrace == EventMaskTypeUpWhenTrace {
+						go func() {
+							w.specialEventC <- &EventTypeUpWhenTrace{When: time.Now()}
+						}()
+					}
 					continue
+				}
+				if w.loff == 0 {
+					if w.eventMask&EventMaskTryToGetUpper == EventMaskTryToGetUpper {
+						go func() {
+							w.specialEventC <- &EventTryToGetUpper{When: time.Now()}
+						}()
+					}
+					continue
+				}
+
+				if w.eventMask&EventMaskMoveUp == EventMaskMoveUp {
+					go func() {
+						w.specialEventC <- &EventMoveUp{When: time.Now()}
+					}()
 				}
 				w.loff -= 1
 				reDraw(w, false)
 			case tcell.KeyDown:
 				maxloff, _ := getMaxLoffAndOutputN(w.curmaxY, len(w.lines))
-				if w.loff == maxloff {
+				if w.trace {
+					if w.eventMask&EventMaskTypeDownWhenTrace == EventMaskTypeDownWhenTrace {
+						go func() {
+							w.specialEventC <- &EventTypeDownWhenTrace{When: time.Now()}
+						}()
+					}
 					continue
+				}
+				if w.loff == maxloff {
+					if w.eventMask&EventMaskTryToGetLower == EventMaskTryToGetLower {
+						go func() {
+							w.specialEventC <- &EventTryToGetLower{When: time.Now()}
+						}()
+					}
+					continue
+				}
+
+				if w.eventMask&EventMaskMoveDown == EventMaskMoveDown {
+					go func() {
+						w.specialEventC <- &EventMoveDown{When: time.Now()}
+					}()
 				}
 				w.loff += 1
 				reDraw(w, false)
@@ -234,6 +281,11 @@ func doListen(w *Win) {
 				w.loff = 0
 				reDraw(w, false)
 			}
+		case *gotoLeftEvent:
+			if w.coff != 0 {
+				w.coff = 0
+				reDraw(w, false)
+			}
 		case *setTraceEvent:
 			w.trace = event.data
 		case *setBlockInputAfterEnterEvent:
@@ -299,4 +351,9 @@ func (w *Win) GotoButtom() {
 // 移动到第一行
 func (w *Win) GotoTop() {
 	w.handler.PostEventWait(&gotoTopEvent{when: time.Now()})
+}
+
+// 移动到最左
+func (w *Win) GotoLeft() {
+	w.handler.PostEventWait(&gotoLeftEvent{when: time.Now()})
 }

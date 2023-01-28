@@ -27,6 +27,9 @@ func cmdHandler(w *interactive.Win, wait *sync.WaitGroup) {
 			case "btm":
 				w.GotoButtom()
 				w.SetBlockInput(false)
+			case "left":
+				w.GotoLeft()
+				w.SetBlockInput(false)
 			case "exit":
 				w.Stop()
 				goto out
@@ -37,6 +40,17 @@ func cmdHandler(w *interactive.Win, wait *sync.WaitGroup) {
 			default:
 				w.SendLine(fmt.Sprintf("unknown command %s", cmd))
 				w.SetBlockInput(false)
+			}
+		case ev := <-w.GetEventChan():
+			switch ev.(type) {
+			case *interactive.EventTryToGetLower:
+				w.SendLine("没有更多向下的消息了")
+			case *interactive.EventTryToGetUpper:
+				w.SendLine("没有更多向上的消息了")
+			case *interactive.EventTypeUpWhenTrace:
+				w.SetTrace(false)
+			case *interactive.EventTypeDownWhenTrace:
+				w.SendLine("现在已经处于追踪模式了")
 			}
 		}
 	}
@@ -49,6 +63,7 @@ func main() {
 	cfg := interactive.GetDefaultConfig()
 	cfg.BlockInputAfterEnter = true
 	cfg.TraceAfterRun = true
+	cfg.SpecialEventHandleMask = interactive.EventMaskTryToGetUpper | interactive.EventMaskTryToGetLower | interactive.EventMaskTypeUpWhenTrace | interactive.EventMaskTypeDownWhenTrace
 	win := interactive.Run(cfg)
 	wait := sync.WaitGroup{}
 	wait.Add(1)
