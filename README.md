@@ -129,6 +129,17 @@ func main() {
 UPDATE LOG
 
 ```
+data: 2023.2.3
+version: unstable
+log
+	更名 EventMoveUp -> EventKeyUp
+	更名 EventMoveDown -> EventKeyDown
+	更名 EventMaskTryToGetUpper -> EventMaskTryToMoveUpper
+	更名 EventMaskTryToGetLower -> EventMaskTryToMoveUpper
+	移除 Win.Stop的返回值, 现在它是阻塞的, 在完成窗口停止后返回
+```
+
+```
 date: 2023.1.28
 version: unstable
 log:

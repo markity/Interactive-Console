@@ -8,55 +8,61 @@ import (
 	"github.com/mattn/go-runewidth"
 )
 
-// 窗口对象,
+// 窗口对象, 一个窗口对象可以复用
+// 即Run后再Stop, 之后可以再Run
 type Win struct {
+	// tcell的Screen句柄
 	handler tcell.Screen
 
-	// 每行的数据, 被锁保护
-	// lines []([]rune)
-
+	// 输出行的数据
 	lines []([]interface{})
 
-	// 输入行的数据, 不被锁保护
+	// 输入行的数据
 	input []rune
 
-	// 是否追踪最新输出, 被锁保护
+	// 是否追踪最新输出
 	trace bool
 
-	// 命令提示符, 不修改, 不保护
+	// 命令提示符
 	prompt rune
-	// 命令提示符的宽度, 不修改, 不保护
+
+	// 命令提示符的宽度
 	promptWidth int
 
 	// line offset, 在追踪最新输出时, 这个没意义, 不保护
 	loff int
-	// column offset, 不保护
+
+	// column offset
 	coff int
 
-	// 当前输入的宽度, 不保护
+	// 当前输入的宽度
 	curwidth int
 
-	// 输入位置的起始位置, 不修改, 不保护
-	inputStart int
-
-	// 不保护
+	// 当前最大行的偏移, 当前最大列的偏移
+	// 前者=行数-1
+	// 后者=列数-1
 	curmaxY int
 	curmaxX int
 
-	// 传递命令
-	cmdC          chan string
-	specialEventC chan interface{}
-	eventMask     int64
+	// 传递命令的管道
+	cmdC chan string
 
-	// TODO 是否需要保护?
+	// 传递事件的管道
+	specialEventC chan interface{}
+
+	// 用户需要使用的事件掩码
+	eventMask int64
+
+	// 用于判断该窗体是否以及结束执行, 即为调用了Stop
 	isStopped bool
 
-	// 是否在键入回车之后禁止输入?
+	// 是否在键入回车之后禁止输入
 	blockInputAfterEnter bool
 
 	// 目前是否处于输入阻塞状态
 	blockedNow bool
 
+	// 用来通知关闭Win以及完成
 	waitStopChan chan struct{}
 }
 
@@ -75,7 +81,6 @@ func Run(cfg Config) *Win {
 		loff:                 0,
 		coff:                 0,
 		curwidth:             0,
-		inputStart:           runewidth.RuneWidth(cfg.Prompt) + 1,
 		curmaxY:              y - 1,
 		curmaxX:              x - 1,
 		cmdC:                 make(chan string),
@@ -90,7 +95,7 @@ func Run(cfg Config) *Win {
 	s.SetStyle(tcell.StyleDefault)
 	s.Clear()
 	s.SetContent(0, w.curmaxY, cfg.Prompt, nil, tcell.StyleDefault)
-	s.ShowCursor(w.inputStart, w.curmaxY)
+	s.ShowCursor(w.promptWidth+1, w.curmaxY)
 	s.Show()
 	go doListen(w)
 	return w
@@ -122,10 +127,10 @@ func doListen(w *Win) {
 				}
 
 				// 清空最后一行
-				for i, j := 0, w.inputStart; i < w.curwidth; i, j = i+1, j+1 {
+				for i, j := 0, w.promptWidth+1; i < w.curwidth; i, j = i+1, j+1 {
 					s.SetContent(j, w.curmaxY, ' ', nil, tcell.StyleDefault)
 				}
-				s.ShowCursor(w.inputStart, w.curmaxY)
+				s.ShowCursor(w.promptWidth+1, w.curmaxY)
 				s.Show()
 				stringCmd := string(w.input)
 				go func() {
@@ -148,7 +153,7 @@ func doListen(w *Win) {
 				}
 
 				// 清空最后一行
-				for i, j := 0, w.inputStart; i < w.curwidth; i, j = i+1, j+1 {
+				for i, j := 0, w.promptWidth+1; i < w.curwidth; i, j = i+1, j+1 {
 					s.SetContent(j, w.curmaxY, ' ', nil, tcell.StyleDefault)
 				}
 
@@ -157,7 +162,7 @@ func doListen(w *Win) {
 				w.input = w.input[0 : len(w.input)-1]
 
 				// 现在写已有的消息
-				offset := w.inputStart
+				offset := w.promptWidth + 1
 				for i := 0; i < len(w.input); i++ {
 					s.SetContent(offset, w.curmaxY, w.input[i], nil, tcell.StyleDefault)
 					offset += runewidth.RuneWidth(w.input[i])
@@ -166,7 +171,7 @@ func doListen(w *Win) {
 				s.Show()
 			case tcell.KeyUp:
 				if w.trace {
-					if w.eventMask&EventMaskTypeUpWhenTrace == EventMaskTypeUpWhenTrace {
+					if w.eventMask&EventMaskKeyUpWhenTrace == EventMaskKeyUpWhenTrace {
 						go func() {
 							w.specialEventC <- &EventTypeUpWhenTrace{When: time.Now()}
 						}()
@@ -174,7 +179,7 @@ func doListen(w *Win) {
 					continue
 				}
 				if w.loff == 0 {
-					if w.eventMask&EventMaskTryToGetUpper == EventMaskTryToGetUpper {
+					if w.eventMask&EventMaskTryToMoveUpper == EventMaskTryToMoveUpper {
 						go func() {
 							w.specialEventC <- &EventTryToGetUpper{When: time.Now()}
 						}()
@@ -182,7 +187,7 @@ func doListen(w *Win) {
 					continue
 				}
 
-				if w.eventMask&EventMaskMoveUp == EventMaskMoveUp {
+				if w.eventMask&EventMaskKeyUp == EventMaskKeyUp {
 					go func() {
 						w.specialEventC <- &EventMoveUp{When: time.Now()}
 					}()
@@ -192,7 +197,7 @@ func doListen(w *Win) {
 			case tcell.KeyDown:
 				maxloff, _ := getMaxLoffAndOutputN(w.curmaxY, len(w.lines))
 				if w.trace {
-					if w.eventMask&EventMaskTypeDownWhenTrace == EventMaskTypeDownWhenTrace {
+					if w.eventMask&EventMaskKeyDownWhenTrace == EventMaskKeyDownWhenTrace {
 						go func() {
 							w.specialEventC <- &EventTypeDownWhenTrace{When: time.Now()}
 						}()
@@ -200,7 +205,7 @@ func doListen(w *Win) {
 					continue
 				}
 				if w.loff == maxloff {
-					if w.eventMask&EventMaskTryToGetLower == EventMaskTryToGetLower {
+					if w.eventMask&EventMaskTryToMoveLower == EventMaskTryToMoveLower {
 						go func() {
 							w.specialEventC <- &EventTryToGetLower{When: time.Now()}
 						}()
@@ -208,7 +213,7 @@ func doListen(w *Win) {
 					continue
 				}
 
-				if w.eventMask&EventMaskMoveDown == EventMaskMoveDown {
+				if w.eventMask&EventMaskKeyDown == EventMaskKeyDown {
 					go func() {
 						w.specialEventC <- &EventMoveDown{When: time.Now()}
 					}()
@@ -239,10 +244,10 @@ func doListen(w *Win) {
 			}
 			c := event.Rune()
 			cWidth := runewidth.RuneWidth(c)
-			if w.curmaxX+1-w.inputStart-w.curwidth > cWidth {
-				s.SetContent(w.curwidth+w.inputStart, w.curmaxY, c, nil, tcell.StyleDefault)
+			if w.curmaxX+1-w.promptWidth+1-w.curwidth > cWidth {
+				s.SetContent(w.curwidth+w.promptWidth+1, w.curmaxY, c, nil, tcell.StyleDefault)
 				w.curwidth += cWidth
-				s.ShowCursor(w.curwidth+w.inputStart, w.curmaxY)
+				s.ShowCursor(w.curwidth+w.promptWidth+1, w.curmaxY)
 				s.Show()
 				w.input = append(w.input, c)
 			} else {
@@ -267,7 +272,7 @@ func doListen(w *Win) {
 			w.coff = 0
 			w.loff = 0
 			reDraw(w, false)
-		case *gotoButtomEvent:
+		case *gotoBottomEvent:
 			w.trace = false
 			maxloff, _ := getMaxLoffAndOutputN(w.curmaxY, len(w.lines))
 			w.loff = maxloff
@@ -434,10 +439,9 @@ func (w *Win) SendLineFrontWithColor(s ...interface{}) error {
 }
 
 // 关闭窗口
-func (w *Win) Stop() <-chan struct{} {
+func (w *Win) Stop() {
 	w.handler.PostEventWait(&stopEvent{when: time.Now()})
 	<-w.waitStopChan
-	return w.waitStopChan
 }
 
 // 追踪最新输出, 此时不允许上下移动, 但允许左右移动
@@ -462,7 +466,7 @@ func (w *Win) Clear() {
 
 // 移动到最后一行, 将取消trace状态
 func (w *Win) GotoButtom() {
-	w.handler.PostEventWait(&gotoButtomEvent{when: time.Now()})
+	w.handler.PostEventWait(&gotoBottomEvent{when: time.Now()})
 }
 
 // 移动到第一行, 将取消trace状态, 等价于GotoLine(1)

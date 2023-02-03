@@ -6,12 +6,21 @@ import (
 
 // 导出事件
 
-const EventMaskMoveUp = 1
-const EventMaskMoveDown = 2
-const EventMaskTryToGetUpper = 4
-const EventMaskTryToGetLower = 8
-const EventMaskTypeUpWhenTrace = 16
-const EventMaskTypeDownWhenTrace = 16
+// 用户按上键
+const EventMaskKeyUp = 1
+
+// 按下键
+const EventMaskKeyDown = 2
+
+// 已经在顶端, 此时用户按上键
+const EventMaskTryToMoveUpper = 4
+
+// 已经在底端, 此时用户按下键
+const EventMaskTryToMoveLower = 8
+
+// 用户在trace模式下按上下键
+const EventMaskKeyUpWhenTrace = 16
+const EventMaskKeyDownWhenTrace = 16
 
 // 上移事件
 type EventMoveUp struct {
@@ -65,11 +74,11 @@ func (me *clearEvent) When() time.Time {
 	return me.when
 }
 
-type gotoButtomEvent struct {
+type gotoBottomEvent struct {
 	when time.Time
 }
 
-func (me *gotoButtomEvent) When() time.Time {
+func (me *gotoBottomEvent) When() time.Time {
 	return me.when
 }
 

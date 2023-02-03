@@ -88,7 +88,7 @@ func main() {
 	cfg := interactive.GetDefaultConfig()
 	cfg.BlockInputAfterEnter = true
 	cfg.TraceAfterRun = true
-	cfg.SpecialEventHandleMask = interactive.EventMaskTryToGetUpper | interactive.EventMaskTryToGetLower | interactive.EventMaskTypeUpWhenTrace | interactive.EventMaskTypeDownWhenTrace
+	cfg.SpecialEventHandleMask = interactive.EventMaskTryToMoveUpper | interactive.EventMaskTryToMoveLower | interactive.EventMaskKeyUpWhenTrace | interactive.EventMaskKeyDownWhenTrace
 	win := interactive.Run(cfg)
 	wait := sync.WaitGroup{}
 	wait.Add(1)
