@@ -16,6 +16,8 @@ package interactive
 
 import (
 	"strconv"
+
+	"github.com/gdamore/tcell"
 )
 
 // Color represents a color.  The low numeric values are the same as used
@@ -1054,4 +1056,17 @@ func GetDefaultSytleAttr() StyleAttr {
 		Reverse:    false,
 		Underline:  false,
 	}
+}
+
+func styleAttr2TcellStyle(attr *StyleAttr) tcell.Style {
+	style := tcell.Style(0)
+	style = style.Background(tcell.Color(attr.Background))
+	style = style.Foreground(tcell.Color(attr.Foreground))
+	style = style.Blink(attr.Blink)
+	style = style.Bold(attr.Bold)
+	style = style.Dim(attr.Dim)
+	style = style.Italic(attr.Italic)
+	style = style.Reverse(attr.Reverse)
+	style = style.Underline(attr.Underline)
+	return style
 }

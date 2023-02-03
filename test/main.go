@@ -7,6 +7,9 @@ import (
 	interactive "github.com/markity/Interactive-Console"
 )
 
+var prompt = '$'
+var promptStyle interactive.StyleAttr
+
 func cmdHandler(w *interactive.Win, wait *sync.WaitGroup) {
 	for {
 		select {
@@ -55,6 +58,20 @@ func cmdHandler(w *interactive.Win, wait *sync.WaitGroup) {
 				attr.Foreground = interactive.ColorPink
 				w.SendLineBackWithColor(attr, "你已经清空的屏幕")
 				w.SetBlockInput(false)
+			case "prompt":
+				if prompt == '>' {
+					prompt = '$'
+				} else {
+					prompt = '>'
+				}
+				if promptStyle.Foreground == interactive.ColorPink {
+					promptStyle.Foreground = interactive.ColorPurple
+				} else {
+					promptStyle.Foreground = interactive.ColorPink
+				}
+
+				w.SetPrompt(&prompt, &promptStyle)
+				w.SetBlockInput(false)
 			default:
 				attr := interactive.GetDefaultSytleAttr()
 				attr.Foreground = interactive.ColorRed
@@ -85,10 +102,16 @@ out:
 }
 
 func main() {
+	prompt = '>'
+	promptStyle = interactive.GetDefaultSytleAttr()
+	promptStyle.Foreground = interactive.ColorPink
+
 	cfg := interactive.GetDefaultConfig()
+	cfg.Prompt = prompt
+	cfg.PromptStyle = promptStyle
 	cfg.BlockInputAfterEnter = true
 	cfg.TraceAfterRun = true
-	cfg.SpecialEventHandleMask = interactive.EventMaskTryToMoveUpper | interactive.EventMaskTryToMoveLower | interactive.EventMaskKeyUpWhenTrace | interactive.EventMaskKeyDownWhenTrace
+	cfg.EventHandleMask = interactive.EventMaskTryToMoveUpper | interactive.EventMaskTryToMoveLower | interactive.EventMaskKeyUpWhenTrace | interactive.EventMaskKeyDownWhenTrace
 	win := interactive.Run(cfg)
 	wait := sync.WaitGroup{}
 	wait.Add(1)

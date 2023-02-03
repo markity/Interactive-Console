@@ -42,7 +42,7 @@ func reDraw(w *Win, resize bool) {
 	out:
 	}
 
-	s.SetContent(0, w.curmaxY, w.prompt, nil, tcell.StyleDefault)
+	s.SetContent(0, w.curmaxY, w.prompt, nil, styleAttr2TcellStyle(&w.promptStyle))
 	s.SetContent(w.promptWidth, w.curmaxY, ' ', nil, tcell.StyleDefault)
 	ioffset := w.promptWidth + 1
 	if resize {

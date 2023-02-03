@@ -184,6 +184,16 @@ func (me *sendLineFrontWithColorEvent) When() time.Time {
 	return me.when
 }
 
+type setPromptEvent struct {
+	when      time.Time
+	dataRune  *rune
+	dataStyle *StyleAttr
+}
+
+func (me *setPromptEvent) When() time.Time {
+	return me.when
+}
+
 // type gotoRightEvent struct {
 // 	when time.Time
 // }
