@@ -20,7 +20,7 @@ const EventMaskTryToMoveLower = 8
 
 // 用户在trace模式下按上下键
 const EventMaskKeyUpWhenTrace = 16
-const EventMaskKeyDownWhenTrace = 16
+const EventMaskKeyDownWhenTrace = 32
 
 // 上移事件
 type EventMoveUp struct {
