@@ -37,8 +37,6 @@ func doListen(w *Win) {
 				if w.blockInputAfterEnter {
 					w.blockedNow = true
 				}
-			case tcell.KeyBackspace:
-				fallthrough
 			case tcell.KeyBackspace2:
 				if w.blockedNow {
 					continue
@@ -128,6 +126,110 @@ func doListen(w *Win) {
 				}
 				w.coff--
 				reDraw(w, false)
+			case tcell.KeyCtrlSpace:
+				if w.eventMask&EventMaskKeyCtrlSpace == EventMaskKeyCtrlSpace {
+					w.specialEventC <- &EventKeyCtrlSpace{When: time.Now()}
+				}
+			case tcell.KeyCtrlA:
+				if w.eventMask&EventMaskKeyCtrlA == EventMaskKeyCtrlA {
+					w.specialEventC <- &EventKeyCtrlA{When: time.Now()}
+				}
+			case tcell.KeyCtrlB:
+				if w.eventMask&EventMaskKeyCtrlB == EventMaskKeyCtrlB {
+					w.specialEventC <- &EventKeyCtrlB{When: time.Now()}
+				}
+			case tcell.KeyCtrlC:
+				if w.eventMask&EventMaskKeyCtrlC == EventMaskKeyCtrlC {
+					w.specialEventC <- &EventKeyCtrlC{When: time.Now()}
+				}
+			case tcell.KeyCtrlD:
+				if w.eventMask&EventMaskKeyCtrlD == EventMaskKeyCtrlD {
+					w.specialEventC <- &EventKeyCtrlD{When: time.Now()}
+				}
+			case tcell.KeyCtrlE:
+				if w.eventMask&EventMaskKeyCtrlE == EventMaskKeyCtrlE {
+					w.specialEventC <- &EventKeyCtrlE{When: time.Now()}
+				}
+			case tcell.KeyCtrlF:
+				if w.eventMask&EventMaskKeyCtrlF == EventMaskKeyCtrlF {
+					w.specialEventC <- &EventKeyCtrlF{When: time.Now()}
+				}
+			case tcell.KeyCtrlG:
+				if w.eventMask&EventMaskKeyCtrlG == EventMaskKeyCtrlG {
+					w.specialEventC <- &EventKeyCtrlG{When: time.Now()}
+				}
+			case tcell.KeyCtrlH:
+				if w.eventMask&EvnetMaskKeyCtrlH == EvnetMaskKeyCtrlH {
+					w.specialEventC <- &EventKeyCtrlH{When: time.Now()}
+				}
+			case tcell.KeyCtrlI:
+				if w.eventMask&EventMaskKeyCtrlI == EventMaskKeyCtrlI {
+					w.specialEventC <- &EventKeyCtrlI{When: time.Now()}
+				}
+			case tcell.KeyCtrlJ:
+				if w.eventMask&EventMaskKeyCtrlJ == EventMaskKeyCtrlJ {
+					w.specialEventC <- &EventKeyCtrlJ{When: time.Now()}
+				}
+			case tcell.KeyCtrlK:
+				if w.eventMask&EventMaskKeyCtrlK == EventMaskKeyCtrlK {
+					w.specialEventC <- &EventKeyCtrlK{When: time.Now()}
+				}
+			case tcell.KeyCtrlL:
+				if w.eventMask&EventMaskKeyCtrlL == EventMaskKeyCtrlL {
+					w.specialEventC <- &EventKeyCtrlL{When: time.Now()}
+				}
+			case tcell.KeyCtrlN:
+				if w.eventMask&EventMaskKeyCtrlN == EventMaskKeyCtrlN {
+					w.specialEventC <- &EventKeyCtrlN{When: time.Now()}
+				}
+			case tcell.KeyCtrlO:
+				if w.eventMask&EventMaskKeyCtrlO == EventMaskKeyCtrlO {
+					w.specialEventC <- &EventKeyCtrlO{When: time.Now()}
+				}
+			case tcell.KeyCtrlP:
+				if w.eventMask&EventMaskKeyCtrlP == EventMaskKeyCtrlP {
+					w.specialEventC <- &EventKeyCtrlP{When: time.Now()}
+				}
+			case tcell.KeyCtrlQ:
+				if w.eventMask&EventMaskKeyCtrlQ == EventMaskKeyCtrlQ {
+					w.specialEventC <- &EventKeyCtrlQ{When: time.Now()}
+				}
+			case tcell.KeyCtrlR:
+				if w.eventMask&EventMaskKeyCtrlR == EventMaskKeyCtrlR {
+					w.specialEventC <- &EventKeyCtrlR{When: time.Now()}
+				}
+			case tcell.KeyCtrlS:
+				if w.eventMask&EventMaskKeyCtrlS == EventMaskKeyCtrlS {
+					w.specialEventC <- &EventKeyCtrlS{When: time.Now()}
+				}
+			case tcell.KeyCtrlT:
+				if w.eventMask&EventMaskKeyCtrlT == EventMaskKeyCtrlT {
+					w.specialEventC <- &EventKeyCtrlT{When: time.Now()}
+				}
+			case tcell.KeyCtrlU:
+				if w.eventMask&EventMaskKeyCtrlU == EventMaskKeyCtrlU {
+					w.specialEventC <- &EventKeyCtrlU{When: time.Now()}
+				}
+			case tcell.KeyCtrlV:
+				if w.eventMask&EventMaskKeyCtrlV == EventMaskKeyCtrlV {
+					w.specialEventC <- &EventKeyCtrlV{When: time.Now()}
+				}
+			case tcell.KeyCtrlW:
+				if w.eventMask&EventMaskKeyCtrlW == EventMaskKeyCtrlW {
+					w.specialEventC <- &EventKeyCtrlW{When: time.Now()}
+				}
+			case tcell.KeyCtrlX:
+				if w.eventMask&EventMaskKeyCtrlX == EventMaskKeyCtrlX {
+					w.specialEventC <- &EventKeyCtrlX{When: time.Now()}
+				}
+			case tcell.KeyCtrlY:
+				if w.eventMask&EventMaskKeyCtrlY == EventMaskKeyCtrlY {
+					w.specialEventC <- &EventKeyCtrlY{When: time.Now()}
+				}
+			case tcell.KeyCtrlZ:
+				if w.eventMask&EventMaskKeyCtrlZ == EventMaskKeyCtrlZ {
+					w.specialEventC <- &EventKeyCtrlZ{When: time.Now()}
+				}
 			}
 
 			// 忽略非普通rune字符
@@ -153,6 +255,13 @@ func doListen(w *Win) {
 			x, y := s.Size()
 			w.curmaxX, w.curmaxY = x-1, y-1
 			reDraw(w, true)
+			if w.eventMask&EventMaskWindowResize == EventMaskWindowResize {
+				w.specialEventC <- &EventWindowResize{
+					Height: y,
+					Width:  x,
+					When:   time.Now(),
+				}
+			}
 		case *stopEvent:
 			w.isStopped = true
 			w.handler.Fini()
@@ -292,6 +401,11 @@ func doListen(w *Win) {
 			}
 			s.ShowCursor(offset, w.curmaxY)
 			s.Show()
+		case *getWindowSizeEvent:
+			resp := new(getWindowSizeEventResp)
+			resp.height = w.curmaxY + 1
+			resp.width = w.curmaxX + 1
+			event.resp <- resp
 		}
 	}
 }

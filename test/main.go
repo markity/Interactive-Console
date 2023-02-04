@@ -41,7 +41,7 @@ func cmdHandler(w *interactive.Win, wait *sync.WaitGroup) {
 				w.GotoLine(1)
 				w.SetBlockInput(false)
 			case "btm":
-				w.GotoButtom()
+				w.GotoBottom()
 				w.SetBlockInput(false)
 			case "left":
 				// GotoLeft前往最左端, 不会改变当前的trace状态
@@ -80,7 +80,7 @@ func cmdHandler(w *interactive.Win, wait *sync.WaitGroup) {
 			}
 		case ev := <-w.GetEventChan():
 			// 特别的事件将通过这个管道传输
-			switch ev.(type) {
+			switch event := ev.(type) {
 			// 如果当时已经在最后一行了, 用户仍然按下向下键, 那么产生这个事件
 			case *interactive.EventTryToGetLower:
 				w.SendLineBack("没有更多向下的消息了")
@@ -93,6 +93,11 @@ func cmdHandler(w *interactive.Win, wait *sync.WaitGroup) {
 				w.SetTrace(false)
 			case *interactive.EventTypeDownWhenTrace:
 				w.SendLineBack("现在已经处于追踪模式了")
+			case *interactive.EventKeyCtrlC:
+				w.Stop()
+				goto out
+			case *interactive.EventWindowResize:
+				w.SendLineBack(fmt.Sprintf("新的size%v %v", event.Height, event.Width))
 			}
 		}
 	}
@@ -111,7 +116,7 @@ func main() {
 	cfg.PromptStyle = promptStyle
 	cfg.BlockInputAfterEnter = true
 	cfg.TraceAfterRun = true
-	cfg.EventHandleMask = interactive.EventMaskTryToMoveUpper | interactive.EventMaskTryToMoveLower | interactive.EventMaskKeyUpWhenTrace | interactive.EventMaskKeyDownWhenTrace
+	cfg.EventHandleMask = interactive.EventMaskTryToMoveUpper | interactive.EventMaskTryToMoveLower | interactive.EventMaskKeyUpWhenTrace | interactive.EventMaskKeyDownWhenTrace | interactive.EventMaskKeyCtrlC | interactive.EventMaskWindowResize
 	win := interactive.Run(cfg)
 	wait := sync.WaitGroup{}
 	wait.Add(1)

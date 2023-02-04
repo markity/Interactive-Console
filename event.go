@@ -10,17 +10,47 @@ import (
 const EventMaskKeyUp = 1
 
 // 按下键
-const EventMaskKeyDown = 2
+const EventMaskKeyDown = 2 << 0
 
 // 已经在顶端, 此时用户按上键
-const EventMaskTryToMoveUpper = 4
+const EventMaskTryToMoveUpper = 2 << 1
 
 // 已经在底端, 此时用户按下键
-const EventMaskTryToMoveLower = 8
+const EventMaskTryToMoveLower = 2 << 2
 
 // 用户在trace模式下按上下键
-const EventMaskKeyUpWhenTrace = 16
-const EventMaskKeyDownWhenTrace = 32
+const EventMaskKeyUpWhenTrace = 2 << 3
+const EventMaskKeyDownWhenTrace = 2 << 4
+
+// 一些控制案按键, 为什么不提供Ctrl+M? 因为它就是Enter, 这个键位有特殊用途, 因此不提供使用
+const EventMaskKeyCtrlSpace = 2 << 5
+const EventMaskKeyCtrlA = 2 << 6
+const EventMaskKeyCtrlB = 2 << 7
+const EventMaskKeyCtrlC = 2 << 8
+const EventMaskKeyCtrlD = 2 << 9
+const EventMaskKeyCtrlE = 2 << 10
+const EventMaskKeyCtrlF = 2 << 11
+const EventMaskKeyCtrlG = 2 << 12
+const EvnetMaskKeyCtrlH = 2 << 13
+const EventMaskKeyCtrlI = 2 << 14
+const EventMaskKeyCtrlJ = 2 << 15
+const EventMaskKeyCtrlK = 2 << 16
+const EventMaskKeyCtrlL = 2 << 17
+const EventMaskKeyCtrlN = 2 << 18
+const EventMaskKeyCtrlO = 2 << 19
+const EventMaskKeyCtrlP = 2 << 20
+const EventMaskKeyCtrlQ = 2 << 21
+const EventMaskKeyCtrlR = 2 << 22
+const EventMaskKeyCtrlS = 2 << 23
+const EventMaskKeyCtrlT = 2 << 24
+const EventMaskKeyCtrlU = 2 << 25
+const EventMaskKeyCtrlV = 2 << 26
+const EventMaskKeyCtrlW = 2 << 27
+const EventMaskKeyCtrlX = 2 << 28
+const EventMaskKeyCtrlY = 2 << 29
+const EventMaskKeyCtrlZ = 2 << 30
+
+const EventMaskWindowResize = 2 << 31
 
 // 上移事件
 type EventMoveUp struct {
@@ -54,6 +84,116 @@ type EventTypeUpWhenTrace struct {
 // 在trace状态时按下键
 type EventTypeDownWhenTrace struct {
 	When time.Time
+}
+
+type EventKeyCtrlSpace struct {
+	When time.Time
+}
+
+type EventKeyCtrlA struct {
+	When time.Time
+}
+
+type EventKeyCtrlB struct {
+	When time.Time
+}
+
+type EventKeyCtrlC struct {
+	When time.Time
+}
+
+type EventKeyCtrlD struct {
+	When time.Time
+}
+
+type EventKeyCtrlE struct {
+	When time.Time
+}
+
+type EventKeyCtrlF struct {
+	When time.Time
+}
+
+type EventKeyCtrlG struct {
+	When time.Time
+}
+
+type EventKeyCtrlH struct {
+	When time.Time
+}
+
+type EventKeyCtrlI struct {
+	When time.Time
+}
+
+type EventKeyCtrlJ struct {
+	When time.Time
+}
+
+type EventKeyCtrlK struct {
+	When time.Time
+}
+
+type EventKeyCtrlL struct {
+	When time.Time
+}
+
+type EventKeyCtrlN struct {
+	When time.Time
+}
+
+type EventKeyCtrlO struct {
+	When time.Time
+}
+
+type EventKeyCtrlP struct {
+	When time.Time
+}
+
+type EventKeyCtrlQ struct {
+	When time.Time
+}
+
+type EventKeyCtrlR struct {
+	When time.Time
+}
+
+type EventKeyCtrlS struct {
+	When time.Time
+}
+
+type EventKeyCtrlT struct {
+	When time.Time
+}
+
+type EventKeyCtrlU struct {
+	When time.Time
+}
+
+type EventKeyCtrlV struct {
+	When time.Time
+}
+
+type EventKeyCtrlW struct {
+	When time.Time
+}
+
+type EventKeyCtrlX struct {
+	When time.Time
+}
+
+type EventKeyCtrlY struct {
+	When time.Time
+}
+
+type EventKeyCtrlZ struct {
+	When time.Time
+}
+
+type EventWindowResize struct {
+	Height int
+	Width  int
+	When   time.Time
 }
 
 // 内部事件
@@ -191,6 +331,20 @@ type setPromptEvent struct {
 }
 
 func (me *setPromptEvent) When() time.Time {
+	return me.when
+}
+
+type getWindowSizeEventResp struct {
+	height int
+	width  int
+}
+
+type getWindowSizeEvent struct {
+	when time.Time
+	resp chan *getWindowSizeEventResp
+}
+
+func (me *getWindowSizeEvent) When() time.Time {
 	return me.when
 }
 

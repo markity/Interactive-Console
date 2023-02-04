@@ -204,7 +204,7 @@ func (w *Win) Clear() {
 }
 
 // 移动到最后一行, 将取消trace状态
-func (w *Win) GotoButtom() {
+func (w *Win) GotoBottom() {
 	w.handler.PostEventWait(&gotoBottomEvent{when: time.Now()})
 }
 
@@ -246,4 +246,11 @@ func (w *Win) PopBackLine() {
 // 设置命令提示符的字符和颜色, 如果其中一个为nil, 那么就不修改此参数
 func (w *Win) SetPrompt(prompt *rune, promptStyle *StyleAttr) {
 	w.handler.PostEventWait(&setPromptEvent{when: time.Now(), dataRune: prompt, dataStyle: promptStyle})
+}
+
+func (w *Win) GetWindowSize() (height int, width int) {
+	c := make(chan *getWindowSizeEventResp)
+	w.handler.PostEventWait(&getWindowSizeEvent{when: time.Now(), resp: c})
+	s := <-c
+	return s.height, s.width
 }
