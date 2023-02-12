@@ -344,6 +344,7 @@ func doListen(w *Win) {
 
 			maxloff, _ := getMaxLoffAndOutputN(w.curmaxY, len(w.lines))
 			if w.loff == maxloff {
+				reDraw(w, false)
 				continue
 			}
 
