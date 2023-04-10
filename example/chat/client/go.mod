@@ -1,9 +1,11 @@
-module github.com/markity/Interactive-Console
+module chat_client
 
-go 1.19
+go 1.20
 
 require (
 	github.com/gdamore/tcell v1.4.0
+	github.com/gorilla/websocket v1.5.0
+	github.com/markity/Interactive-Console v0.0.0-20230212164052-dbc2e9621ef1
 	github.com/mattn/go-runewidth v0.0.14
 )
 
