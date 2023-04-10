@@ -299,6 +299,7 @@ func doListen(w *Win) {
 			}
 		case *setTraceEvent:
 			w.trace = event.data
+			reDraw(w, false)
 		case *setBlockInputAfterEnterEvent:
 			w.blockInputAfterEnter = event.data
 		case *gotoLineEvent:
