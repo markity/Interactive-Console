@@ -37,6 +37,7 @@ func doListen(w *Win) {
 				if w.blockInputAfterEnter {
 					w.blockedNow = true
 				}
+			case tcell.KeyCtrlH:
 			case tcell.KeyBackspace2:
 				if w.blockedNow {
 					continue
@@ -157,10 +158,6 @@ func doListen(w *Win) {
 			case tcell.KeyCtrlG:
 				if w.eventMask&EventMaskKeyCtrlG == EventMaskKeyCtrlG {
 					w.specialEventC <- &EventKeyCtrlG{When: time.Now()}
-				}
-			case tcell.KeyCtrlH:
-				if w.eventMask&EvnetMaskKeyCtrlH == EvnetMaskKeyCtrlH {
-					w.specialEventC <- &EventKeyCtrlH{When: time.Now()}
 				}
 			case tcell.KeyCtrlI:
 				if w.eventMask&EventMaskKeyCtrlI == EventMaskKeyCtrlI {
