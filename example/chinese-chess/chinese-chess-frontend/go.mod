@@ -8,7 +8,7 @@ require (
 	github.com/gdamore/encoding v1.0.0 // indirect
 	github.com/gdamore/tcell v1.4.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
-	github.com/markity/Interactive-Console v0.0.0-20230606101054-e144731e724a // indirect
+	github.com/markity/Interactive-Console v0.0.0-20230606102357-e9d946f2d783 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	golang.org/x/sys v0.8.0 // indirect

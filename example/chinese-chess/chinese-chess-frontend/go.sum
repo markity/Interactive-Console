@@ -21,6 +21,8 @@ github.com/markity/Interactive-Console v0.0.0-20230606100519-a2212eef32b2 h1:tCI
 github.com/markity/Interactive-Console v0.0.0-20230606100519-a2212eef32b2/go.mod h1:a8hH83DuDxbh2oVyBGHG9IwxOk0j+YkBYnRd1UemXwQ=
 github.com/markity/Interactive-Console v0.0.0-20230606101054-e144731e724a h1:zvGMP3OeQUKZ4U14GkgdXl0xzj1/hSfkoWXpvVIRchQ=
 github.com/markity/Interactive-Console v0.0.0-20230606101054-e144731e724a/go.mod h1:a8hH83DuDxbh2oVyBGHG9IwxOk0j+YkBYnRd1UemXwQ=
+github.com/markity/Interactive-Console v0.0.0-20230606102357-e9d946f2d783 h1:WyjNMWNO/++7oFwNrPpmJF/L/CWHDzWOADZ78oHmnt0=
+github.com/markity/Interactive-Console v0.0.0-20230606102357-e9d946f2d783/go.mod h1:a8hH83DuDxbh2oVyBGHG9IwxOk0j+YkBYnRd1UemXwQ=
 github.com/mattn/go-runewidth v0.0.7/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
 github.com/mattn/go-runewidth v0.0.14 h1:+xnbZSEeDbOIg5/mE6JF0w6n9duR1l3/WmbinWVwUuU=
 github.com/mattn/go-runewidth v0.0.14/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh153qUoGf23w=

@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/gdamore/tcell v1.4.0
 	github.com/gorilla/websocket v1.5.0
-	github.com/markity/Interactive-Console v0.0.0-20230410053001-d3f9e00335ad
+	github.com/markity/Interactive-Console v0.0.0-20230606102357-e9d946f2d783
 	github.com/mattn/go-runewidth v0.0.14
 )
 
