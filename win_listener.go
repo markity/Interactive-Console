@@ -41,6 +41,7 @@ func doListen(w *Win) {
 			case tcell.KeyCtrlH:
 			case tcell.KeyDelete:
 			case tcell.KeyCtrlB:
+			case tcell.KeyESC:
 				// KeyDEL
 			case tcell.KeyBackspace2:
 				if w.blockedNow {
