@@ -10,5 +10,5 @@ const HeartbeatInterval = 200
 const MaxLoseHeartbeat = 5
 
 // 服务端的配置
-const ServerListenIP = "0.0.0.0"
+const ServerListenIP = "127.0.0.1"
 const ServerListenPort = 8080
