@@ -4,7 +4,6 @@ import (
 	commpackets "chinese-chess-backend/comm_packets"
 	commsettings "chinese-chess-backend/comm_settings"
 	"chinese-chess-backend/tools"
-	"fmt"
 	"sync"
 
 	"github.com/Allenxuxu/gev"
@@ -174,7 +173,6 @@ func (ch *ConnHandler) OnMessage(c *gev.Connection, ctx interface{}, data []byte
 
 		// 协议错误, 强行关闭连接
 		if connCtx.ConnState != ConnStateGaming {
-			fmt.Println(connCtx.ConnState)
 			c.Close()
 			return nil
 		}
