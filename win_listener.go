@@ -39,9 +39,32 @@ func doListen(w *Win) {
 				}
 				// windows: KeyBackSpace,
 			case tcell.KeyCtrlH:
+				if w.blockedNow {
+					continue
+				}
+
+				if w.curwidth == 0 {
+					break
+				}
+
+				// 更新数据结构
+				w.curwidth -= runewidth.RuneWidth(w.input[len(w.input)-1])
+				w.input = w.input[0 : len(w.input)-1]
+				reDraw(w, false)
 				// linux: CTRL BACKSPACE
 			case tcell.KeyDelete:
-			case tcell.KeyESC:
+				if w.blockedNow {
+					continue
+				}
+
+				if w.curwidth == 0 {
+					break
+				}
+
+				// 更新数据结构
+				w.curwidth -= runewidth.RuneWidth(w.input[len(w.input)-1])
+				w.input = w.input[0 : len(w.input)-1]
+				reDraw(w, false)
 				// linux: BACKSPACE
 				// windows: CTRL BACKSPACE
 			case tcell.KeyBackspace2:
