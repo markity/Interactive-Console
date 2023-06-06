@@ -37,12 +37,13 @@ func doListen(w *Win) {
 				if w.blockInputAfterEnter {
 					w.blockedNow = true
 				}
-				// KeyBackSpace
+				// windows: KeyBackSpace,
 			case tcell.KeyCtrlH:
+				// linux: CTRL BACKSPACE
 			case tcell.KeyDelete:
-			case tcell.KeyCtrlB:
 			case tcell.KeyESC:
-				// KeyDEL
+				// linux: BACKSPACE
+				// windows: CTRL BACKSPACE
 			case tcell.KeyBackspace2:
 				if w.blockedNow {
 					continue
@@ -127,10 +128,10 @@ func doListen(w *Win) {
 				if w.eventMask&EventMaskKeyCtrlA == EventMaskKeyCtrlA {
 					w.specialEventC <- &EventKeyCtrlA{When: time.Now()}
 				}
-			// case tcell.KeyCtrlB:
-			// 	if w.eventMask&EventMaskKeyCtrlB == EventMaskKeyCtrlB {
-			// 		w.specialEventC <- &EventKeyCtrlB{When: time.Now()}
-			// 	}
+			case tcell.KeyCtrlB:
+				if w.eventMask&EventMaskKeyCtrlB == EventMaskKeyCtrlB {
+					w.specialEventC <- &EventKeyCtrlB{When: time.Now()}
+				}
 			case tcell.KeyCtrlC:
 				if w.eventMask&EventMaskKeyCtrlC == EventMaskKeyCtrlC {
 					w.specialEventC <- &EventKeyCtrlC{When: time.Now()}
