@@ -52,7 +52,13 @@ func DrawTable(table commpackets.ChessTable, win *interactive.Win, msg string) {
 			}
 			sendbuf = append(sendbuf, name)
 		}
+		sendbuf = append(sendbuf, interactive.GetDefaultSytleAttr(), fmt.Sprint(y))
 		win.SendLineBackWithColor(sendbuf...)
+		if y == 5 {
+			riverColor := interactive.GetDefaultSytleAttr()
+			riverColor.Foreground = interactive.ColorDarkTurquoise
+			win.SendLineBackWithColor(riverColor, "========楚河=========")
+		}
 	}
 	win.SendLineBackWithColor("  0 1 2 3 4 5 6 7 8")
 	win.SendLineBack(msg)
