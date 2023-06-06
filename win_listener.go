@@ -37,9 +37,11 @@ func doListen(w *Win) {
 				if w.blockInputAfterEnter {
 					w.blockedNow = true
 				}
+				// KeyBackSpace
 			case tcell.KeyCtrlH:
 			case tcell.KeyDelete:
 			case tcell.KeyCtrlB:
+				// KeyDEL
 			case tcell.KeyBackspace2:
 				if w.blockedNow {
 					continue
