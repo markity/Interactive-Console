@@ -47,23 +47,10 @@ func doListen(w *Win) {
 					break
 				}
 
-				// 清空最后一行
-				for i, j := 0, w.promptWidth+1; i < w.curwidth; i, j = i+1, j+1 {
-					s.SetContent(j, w.curmaxY, ' ', nil, tcell.StyleDefault)
-				}
-
 				// 更新数据结构
 				w.curwidth -= runewidth.RuneWidth(w.input[len(w.input)-1])
 				w.input = w.input[0 : len(w.input)-1]
-
-				// 现在写已有的消息
-				offset := w.promptWidth + 1
-				for i := 0; i < len(w.input); i++ {
-					s.SetContent(offset, w.curmaxY, w.input[i], nil, tcell.StyleDefault)
-					offset += runewidth.RuneWidth(w.input[i])
-				}
-				s.ShowCursor(offset, w.curmaxY)
-				s.Show()
+				reDraw(w, false)
 			case tcell.KeyUp:
 				if w.trace {
 					if w.eventMask&EventMaskKeyUpWhenTrace == EventMaskKeyUpWhenTrace {
