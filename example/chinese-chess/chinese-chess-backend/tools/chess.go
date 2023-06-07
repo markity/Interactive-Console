@@ -2,7 +2,6 @@ package tools
 
 import (
 	commpackets "chinese-chess-backend/comm_packets"
-	"fmt"
 	"math"
 )
 
@@ -69,26 +68,22 @@ func hasChessBetweenTwoPoints(table *commpackets.ChessTable, x1 int, y1 int, x2 
 func DoMove(side commpackets.GameSide, table *commpackets.ChessTable, fromX int, fromY int, toX int, toY int) (gameover bool, moveok bool) {
 	// 不能有非法的坐标
 	if isPointCrossRange(fromX, fromY) || isPointCrossRange(toX, toY) {
-		fmt.Println(1)
 		return false, false
 	}
 
 	// from点不能是空的
 	from := table.GetPoint(fromX, fromY)
 	if from == nil {
-		fmt.Println(2)
 		return false, false
 	}
 
 	// 不能移动非己方的棋子
 	if from.Side != side {
-		fmt.Println(3)
 		return false, false
 	}
 
 	// 不能不移动
 	if from.X == toX && from.Y == toY {
-		fmt.Println(4)
 		return false, false
 	}
 
@@ -160,20 +155,17 @@ func DoMove(side commpackets.GameSide, table *commpackets.ChessTable, fromX int,
 	case commpackets.PieceTypeChe:
 		// 必须是直线
 		if !isSameLine(from.X, from.Y, toX, toY) {
-			fmt.Println(5)
 			return false, false
 		}
 
 		// 中间如果有子
 		if hasChessBetweenTwoPoints(table, from.X, from.Y, toX, toY) {
-			fmt.Println(6)
 			return false, false
 		}
 
 		// 直线, 中间无子, 对端有子是己方阵营
 		if table.GetPoint(toX, toY) != nil {
 			if table.GetPoint(toX, toY).Side == side {
-				fmt.Println(7)
 				return false, false
 			}
 		}
