@@ -104,7 +104,7 @@ func (ch *ConnHandler) OnMessage(c *gev.Connection, ctx interface{}, data []byte
 				}
 
 				// 创建一个默认棋盘
-				table := chess.NewTestTable2()
+				table := chess.NewChessTable()
 
 				// 建立游戏上下文
 				gameContext := GameContext{
